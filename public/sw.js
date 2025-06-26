@@ -1,16 +1,16 @@
 // Service Worker file
 
+// Inject manifest - this comment is required for injection
+const manifestFiles = self.__WB_MANIFEST;
+
 // Cache name
 const CACHE_NAME = 'todo-pwa-v1';
 
-// Files to cache
+// Files to cache - combine manifest files with static files
 const urlsToCache = [
   '/',
   '/index.html',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/index.css',
-  '/src/App.css'
+  ...manifestFiles.map(file => file.url)
 ];
 
 // Install service worker

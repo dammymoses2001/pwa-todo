@@ -12,7 +12,12 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw.js',
-        manifest: {
+      injectRegister: 'auto',
+      injectManifest: {
+        injectionPoint: 'self.__WB_MANIFEST',
+        rollupFormat: 'iife'
+      },
+      manifest: {
           // caches the assets/icons mentioned (assets/* includes all the assets present in your src/ directory)
           includeAssets: ["favicon.ico", "apple-touch-icon.png", "assets/*"],
           name: "Simplifying Progressive Web App (PWA) Development with Vite: A Beginners Guide",
