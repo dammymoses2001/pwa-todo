@@ -16,6 +16,64 @@ const staticAssets = [
   ...manifestFiles.map(file => file.url)
 ];
 
+// Create offline fallback page
+const createOfflineFallbackResponse = () => {
+  const offlineHtml = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Offline - Todo PWA</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #f9fafb;
+          }
+          .offline-message {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+          }
+          h1 { color: #374151; margin-bottom: 1rem; }
+          p { color: #6b7280; margin-bottom: 1.5rem; }
+          button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+          }
+          button:hover { background-color: #2563eb; }
+        </style>
+      </head>
+      <body>
+        <div class="offline-message">
+          <h1>You're Offline</h1>
+          <p>Please check your internet connection and try again.</p>
+          <button onclick="window.location.reload()">Retry</button>
+        </div>
+      </body>
+    </html>
+  `;
+  return new Response(offlineHtml, {
+    headers: { 'Content-Type': 'text/html' }
+  });
+};
+
 // Install event - cache static assets
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -59,12 +117,36 @@ const isStaticAsset = (url) => {
   );
 };
 
+// Helper function to determine if a request is for the main page
+const isMainPageRequest = (url) => {
+  return url.pathname === '/' || url.pathname === '/index.html';
+};
+
 // Fetch event handler with different strategies for different types of requests
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+
+  // Strategy for main page: Cache First with Custom Offline Fallback
+  if (isMainPageRequest(url)) {
+    event.respondWith(
+      caches.match(event.request)
+        .then(cachedResponse => {
+          return cachedResponse || fetch(event.request)
+            .then(response => {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE).then(cache => {
+                cache.put(event.request, responseClone);
+              });
+              return response;
+            })
+            .catch(() => createOfflineFallbackResponse());
+        })
+    );
+    return;
+  }
 
   // Strategy for API requests: Network First with Offline Fallback
   if (isApiRequest(url)) {
@@ -83,7 +165,6 @@ self.addEventListener('fetch', event => {
               if (cachedResponse) {
                 return cachedResponse;
               }
-              // Return cached data or empty data structure
               return new Response(JSON.stringify({ todos: [] }), {
                 headers: { 'Content-Type': 'application/json' }
               });
@@ -129,7 +210,7 @@ self.addEventListener('fetch', event => {
             if (cachedResponse) {
               return cachedResponse;
             }
-            return caches.match('/');
+            return createOfflineFallbackResponse();
           });
       })
   );
