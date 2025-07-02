@@ -16,6 +16,11 @@ const staticAssets = [
   ...manifestFiles.map(file => file.url)
 ];
 
+// Add a more generic check for assets that might have hashed names
+const isBundledAsset = (url) => {
+  return url.pathname.startsWith('/assets/') && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'));
+};
+
 // Create offline fallback page
 const createOfflineFallbackResponse = () => {
   const offlineHtml = `
@@ -113,7 +118,8 @@ const isStaticAsset = (url) => {
     url.pathname.endsWith('.json') ||
     url.pathname.endsWith('.ico') ||
     url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg')
+    url.pathname.endsWith('.svg') ||
+    isBundledAsset(url)
   );
 };
 
