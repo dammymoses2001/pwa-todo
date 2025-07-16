@@ -7,36 +7,27 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js',
+      strategies: 'generateSW',
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
-      injectManifest: {
-        injectionPoint: 'self.__WB_MANIFEST',
-        rollupFormat: 'iife',
-        maximumFileSizeToCacheInBytes: 3000000
+      devOptions: {
+        enabled: true
       },
       manifest: {
-        includeAssets: ["favicon.ico", "apple-touch-icon.png", "assets/*"],
-        name: "Simplifying Progressive Web App (PWA) Development with Vite: A Beginners Guide",
-        short_name: "PWA Guide",
+        includeAssets: ["vite.svg"],
+        name: "Todo PWA",
+        short_name: "TodoPWA",
         description: "A Progressive Web App for managing todos",
         start_url: "/",
         display: "standalone",
         orientation: "portrait",
         background_color: "#ffffff",
-        theme_color: "#000000",
+        theme_color: "#646cff",
         icons: [
           {
-            src: "/images/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any maskable"
-          },
-          {
-            src: "/images/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
+            src: "/vite.svg",
+            sizes: "any",
+            type: "image/svg+xml",
             purpose: "any maskable"
           }
         ]
