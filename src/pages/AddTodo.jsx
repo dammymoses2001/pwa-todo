@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { addTodo } from '../services/todo';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const AddTodo = () => {
   const queryClient = useQueryClient();
@@ -10,9 +11,19 @@ const AddTodo = () => {
   const mutation = useMutation({
     mutationFn: addTodo,
     onSuccess: () => {
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['todos'] });
       setTitle('');
+      toast.success('Todo added successfully!');
+    },
+    onError: (error) => {
+      if (!navigator.onLine) {
+        toast.success('Your new todo will be saved automatically when you are back online.');
+        setTitle('');
+        // Optimistically update the UI until the page is reloaded
+        // This is optional and depends on the desired UX
+      } else {
+        toast.error(`An error occurred: ${error.message}`);
+      }
     },
   });
 
@@ -33,14 +44,16 @@ const AddTodo = () => {
           onChange={(e) => setTitle(e.target.value)}
           className="border p-2 mr-2"
           placeholder="New todo title"
+          disabled={mutation.isPending}
         />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">
-          Add
+        <button
+          type="submit"
+          className="bg-blue-500 text-white p-2 rounded"
+          disabled={mutation.isPending}
+        >
+          {mutation.isPending ? 'Adding...' : 'Add'}
         </button>
       </form>
-      {mutation.isPending && <div>Adding todo...</div>}
-      {mutation.isError && <div>An error occurred: {mutation.error.message}</div>}
-      {mutation.isSuccess && <div>Todo added!</div>}
     </div>
   );
 };
