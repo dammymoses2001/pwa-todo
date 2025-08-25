@@ -38,19 +38,33 @@ export default defineConfig({
         ],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.*/i,
+            urlPattern: /^https:\/\/jsonplaceholder\.typicode\.com\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
               networkTimeoutSeconds: 10,
               expiration: {
                 maxEntries: 200,
-                maxAgeSeconds: 24 * 60 * 60 // 24 hours
+                maxAgeSeconds: 24 * 60 * 60, // 24 hours
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: (context) =>
+              context.url.href.startsWith('https://jsonplaceholder.typicode.com/todos') &&
+              context.request.method === 'POST',
+            handler: 'NetworkOnly',
+            options: {
+              backgroundSync: {
+                name: 'add-todo-queue',
+                options: {
+                  maxRetentionTime: 24 * 60, // 24 hours
+                },
+              },
+            },
           },
           {
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
@@ -59,11 +73,11 @@ export default defineConfig({
               cacheName: 'images-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-              }
-            }
-          }
-        ]
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+              },
+            },
+          },
+        ],
       }
     })
   ]

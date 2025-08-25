@@ -15,7 +15,7 @@ const TodoList = () => {
     <div>
       <h1 className="text-2xl font-bold mb-4">Todo List</h1>
       <ul className="list-disc pl-5">
-        {data.map((todo) => (
+        {data?.map((todo) => (
           <li key={todo.id} className="mb-2">
             {todo.title}
           </li>
